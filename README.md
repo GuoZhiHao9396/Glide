@@ -51,7 +51,7 @@ Maven：
 
 ### 第一次：从一个 URL 中加载图片
 
-就像 Picasso， Glide 库是使用流接口(fluent interface)(https://en.wikipedia.org/wiki/Fluent_interface)。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
+就像 Picasso， Glide 库是使用流接口([fluent interface](https://en.wikipedia.org/wiki/Fluent_interface))。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
 
  * with(Context context) - 对于很多 Android API 调用，Context 是必须的。Glide 在这里也一样
  * load(String imageUrl) - 这里你可以指定哪个图片应该被加载，同上它会是一个字符串的形式表示一个网络图片的 URL
@@ -128,7 +128,7 @@ private static Uri resourceIdToUri(Context context, int resourceId) {
 
 ### 画廊实现示例：ListView
 
-首先我们需要一些测试图片。我们从我们的 [pixabay](https://pixabay.com/) 项目中去拿了一些图片。
+首先我们需要一些测试图片。我们从我们的 [pixabay](https://pixabay.com/) 网址中去拿了一些图片。
 
 ```java
 public static String[] eatFoodyImages = {
@@ -148,7 +148,20 @@ public static String[] eatFoodyImages = {
         "http://i.imgur.com/Z3QjilA.jpg",
 };
 ```
+其次，我们需要一个 activity，它创建一个 adapter 并设置给一个 ListView。
+```java
+public class UsageExampleAdapter extends AppCompatActivity {
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_usage_example_adapter);
+
+        listView.setAdapter(new ImageListAdapter(UsageExampleAdapter.this, eatFoodyImages));
+    }
+}
+```
 
 
 
