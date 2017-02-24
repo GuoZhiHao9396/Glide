@@ -198,6 +198,6 @@ public class ImageListAdapter extends ArrayAdapter {
 
 作为一个进阶的 Android 开发者你需要知道我们需要去重用 ListView 的布局，去创建一个快速又顺滑滚动的体验。Glide 的魅力是自动处理请求的取消，清楚 ImageView，并加载正确的图片到对应的 ImageView。
 
-[https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png]
+![Testin](https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png)
 
 
