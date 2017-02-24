@@ -153,10 +153,51 @@ public class UsageExampleAdapter extends AppCompatActivity {
     }
 }
 ```
+再次，看下 adapter 的布局文件。这个 ListView 的 item 的布局文件是非常简单的。
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="200dp"/>
+```
+这回显示一个图片列表，每个的高度是 200dp，并且填充设备的宽度。显然，这不是最好的图片画廊，不过，不要在意这些细节。
 
+在这之前，我们需要为 ListView 实现一个 adapter。让它看起来是简单的，并绑定我们的 eatfoody 样本图片到 adapter。每个 item 会显示一个图片。
+```java
+public class ImageListAdapter extends ArrayAdapter {
+    private Context context;
+    private LayoutInflater inflater;
 
+    private String[] imageUrls;
 
+    public ImageListAdapter(Context context, String[] imageUrls) {
+        super(context, R.layout.listview_item_image, imageUrls);
 
+        this.context = context;
+        this.imageUrls = imageUrls;
 
+        inflater = LayoutInflater.from(context);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (null == convertView) {
+            convertView = inflater.inflate(R.layout.listview_item_image, parent, false);
+        }
+
+        Glide
+            .with(context)
+            .load(imageUrls[position])
+            .into((ImageView) convertView);
+
+        return convertView;
+    }
+}
+```
+有趣的事情发生在 ImageListAdapter 类里的 getView() 方法中。你会看到 Glide 调用方式和之前的’常规’加载图片的方式是完全一样的。不管你在应用中想要如何去加载，Glide 的使用方式总是一样的。
+
+作为一个进阶的 Android 开发者你需要知道我们需要去重用 ListView 的布局，去创建一个快速又顺滑滚动的体验。Glide 的魅力是自动处理请求的取消，清楚 ImageView，并加载正确的图片到对应的 ImageView。
+
+[https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png]
 
 
