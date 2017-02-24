@@ -102,10 +102,10 @@ Glide
 
 最后，你也指定一个 Uri 来加载图片。该请求和之前的没有什么不同。
 
+```java
 //这可能是任何 Uri。为了演示的目的我们只是用一个 launcher icon 去创建了一个 Uri 
 Uri uri = resourceIdToUri(context, R.mipmap.future_studio_launcher);
 
-```java
 Glide
     .with(context)
     .load(uri)
@@ -124,7 +124,30 @@ private static Uri resourceIdToUri(Context context, int resourceId) {
 ```
 然而， Uri 不必从资源中去生成，它可以是任何 Uri。
 
+## ListAdapter(ListView, GridView)
 
+### 画廊实现示例：ListView
+
+首先我们需要一些测试图片。我们从我们的 [pixabay](https://pixabay.com/) 项目中去拿了一些图片。
+
+```java
+public static String[] eatFoodyImages = {
+        "http://i.imgur.com/rFLNqWI.jpg",
+        "http://i.imgur.com/C9pBVt7.jpg",
+        "http://i.imgur.com/rT5vXE1.jpg",
+        "http://i.imgur.com/aIy5R2k.jpg",
+        "http://i.imgur.com/MoJs9pT.jpg",
+        "http://i.imgur.com/S963yEM.jpg",
+        "http://i.imgur.com/rLR2cyc.jpg",
+        "http://i.imgur.com/SEPdUIx.jpg",
+        "http://i.imgur.com/aC9OjaM.jpg",
+        "http://i.imgur.com/76Jfv9b.jpg",
+        "http://i.imgur.com/fUX7EIB.jpg",
+        "http://i.imgur.com/syELajx.jpg",
+        "http://i.imgur.com/COzBnru.jpg",
+        "http://i.imgur.com/Z3QjilA.jpg",
+};
+```
 
 
 
