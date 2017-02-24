@@ -26,6 +26,7 @@
 
 ## 开始！
 
+### 为何使用 Glide？
 ```text
 有经验的 Android 开发者可以跳过这节，但对于初学者来说，你可能会问自己为什么你想要去用 Glide，而不是自己去实现。
 
@@ -34,9 +35,22 @@ Android 在处理图片工作的时候显得有点娘，因为它会以像素形
 在这个系列，我们将看到 Glide 的很多特性，去看下这篇博客的提纲，并考虑你是否真的要去开发所有这些功能。
 ```
 
+### 添加 Glide
+```text
+首先，添加 Glide 到你的依赖中，最新的版本是 Glide 是 3.7.0。
 
+Gradle：
+       compile 'com.github.bumptech.glide:glide:3.7.0'
+Maven：
+       <dependency>
+           <groupId>com.github.bumptech.glide</groupId>
+           <artifactId>glide</artifactId>
+           <version>3.7.0</version>
+           <type>aar</type>
+       </dependency>
+```
 
-
+### 第一次：从一个 URL 中加载图片
 
 
 
