@@ -32,7 +32,7 @@
 
 Android 在处理图片工作的时候显得有点娘，因为它会以像素形式加载图片到内存中去，一张照片平均普通的手机摄像头尺寸是 2592x1936 像素（5百万像素）将大约会分配 19MB 内存。对于复杂的网络情况，缓存和图片处理，如果你用了一个测试完善开发完成的库，如 Glide，你会省下大量的时间，还不会让你头疼！
 
-在这个系列，我们将看到 Glide 的很多特性，去看下这篇博客的提纲，并考虑你是否真的要去开发所有这些功能。
+在这里，我们将看到 Glide 的很多特性，去看上面的提纲，并考虑你是否真的要去开发所有这些功能。
 
 ### 添加 Glide
 
@@ -51,7 +51,7 @@ Maven：
 
 ### 第一次：从一个 URL 中加载图片
 
-就像 Picasso， Glide 库是使用流接口(fluent interface)。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
+就像 Picasso， Glide 库是使用流接口(fluent interface)(https://en.wikipedia.org/wiki/Fluent_interface)。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
 
  * with(Context context) - 对于很多 Android API 调用，Context 是必须的。Glide 在这里也一样
  * load(String imageUrl) - 这里你可以指定哪个图片应该被加载，同上它会是一个字符串的形式表示一个网络图片的 URL
