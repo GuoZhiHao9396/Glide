@@ -216,4 +216,8 @@ public class ImageListAdapter extends ArrayAdapter {
     android:numColumns="2"/>
 ```
 这是结果：
+
 ![Test](https://futurestud.io/blog/content/images/2015/09/glide-grid--1-.png)
+
+### 其他应用：ImageView 作为元素
+目前为止，我们仅仅看了整个 adapter 的 item 是一个 ImageView。该方法仍然应用于一个或者多个 ImageView 作为 adapter item 的一部分的情况。你的 getView() 代码会有一点不同，但是 Glide 项的加载方式是完全相同的。
