@@ -51,7 +51,25 @@ Maven：
 ```
 
 ### 第一次：从一个 URL 中加载图片
+```java
+就像 Picasso， Glide 库是使用流接口(fluent interface)。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
 
+ *with(Context context) - 对于很多 Android API 调用，Context 是必须的。Glide 在这里也一样
+ *load(String imageUrl) - 这里你可以指定哪个图片应该被加载，同上它会是一个字符串的形式表示一个网络图片的 URL
+ *into(ImageView targetImageView) 你的图片会显示到对应的 ImageView 中。
+ 
+理论解释总是苍白的，所以，看一下实际的例子吧：
+
+ImageView targetImageView = (ImageView) findViewById(R.id.imageView);
+String internetUrl = "http://i.imgur.com/DvpvklR.png";
+
+Glide
+    .with(context)
+    .load(internetUrl)
+    .into(targetImageView);
+    
+就这样！如果图片的 URL 存在并且你的 ImageView 是可见的，你会在几秒后看到图片。万一图片不存在，Glide 会返回一个错误的回调（我们会在后面讨论这个）。你可能已经相信这三行代码对你而言是有用的，但是这只是冰山一角啦。
+```
 
 
 
