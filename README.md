@@ -198,6 +198,22 @@ public class ImageListAdapter extends ArrayAdapter {
 
 作为一个进阶的 Android 开发者你需要知道我们需要去重用 ListView 的布局，去创建一个快速又顺滑滚动的体验。Glide 的魅力是自动处理请求的取消，清楚 ImageView，并加载正确的图片到对应的 ImageView。
 
-![Testin](https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png)
+![Test](https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png)
 
+### Glide 的一个优势：缓存
+当你上下滚动很多次，你会看到图片显示的之前的快的多。在比较新的手机上，这甚至都不需要时间去等。你可以会猜测，这些图片可能是来自缓存，而不再是从网络中请求。Glide 的缓存实现是基于 Picasso，这对你来说会更加全面的而且做很多事情会更加容易。缓存实现的大小是依赖于设备的磁盘大小。
 
+当加载图片时，Glide 使用3个来源：内存，磁盘和网络（从最快到最慢排序）。再说一次，这里你不需要做任何事情。Glide 帮你隐藏了所有复杂的情况，同时为你创建了一个智能的缓存大小。我们将在以后的博客中去了解这块缓存知识。
+### 画廊实现示例：GridView
+对于 GridView 来说这和 ListView 的实现并没有什么不同，你实际上可以用相同的 adapter，只需要在 activity 的布局文件改成 GridView:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<GridView
+    android:id="@+id/usage_example_gridview"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:numColumns="2"/>
+```
+这是结果：
+![Test](https://futurestud.io/blog/content/images/2015/09/glide-grid--1-.png)
