@@ -27,18 +27,17 @@
 ## 开始！
 
 ### 为何使用 Glide？
-```text
+
 有经验的 Android 开发者可以跳过这节，但对于初学者来说，你可能会问自己为什么你想要去用 Glide，而不是自己去实现。
 
 Android 在处理图片工作的时候显得有点娘，因为它会以像素形式加载图片到内存中去，一张照片平均普通的手机摄像头尺寸是 2592x1936 像素（5百万像素）将大约会分配 19MB 内存。对于复杂的网络情况，缓存和图片处理，如果你用了一个测试完善开发完成的库，如 Glide，你会省下大量的时间，还不会让你头疼！
 
 在这个系列，我们将看到 Glide 的很多特性，去看下这篇博客的提纲，并考虑你是否真的要去开发所有这些功能。
-```
 
 ### 添加 Glide
-```text
-首先，添加 Glide 到你的依赖中，最新的版本是 Glide 是 3.7.0。
 
+首先，添加 Glide 到你的依赖中，最新的版本是 Glide 是 3.7.0。
+```text
 Gradle：
        compile 'com.github.bumptech.glide:glide:3.7.0'
 Maven：
@@ -51,7 +50,7 @@ Maven：
 ```
 
 ### 第一次：从一个 URL 中加载图片
-```java
+
 就像 Picasso， Glide 库是使用流接口(fluent interface)。对一个完整的功能请求，Glide 建造者要求最少有三个参数。
 
  *with(Context context) - 对于很多 Android API 调用，Context 是必须的。Glide 在这里也一样
@@ -59,7 +58,7 @@ Maven：
  *into(ImageView targetImageView) 你的图片会显示到对应的 ImageView 中。
  
 理论解释总是苍白的，所以，看一下实际的例子吧：
-
+```java
 ImageView targetImageView = (ImageView) findViewById(R.id.imageView);
 String internetUrl = "http://i.imgur.com/DvpvklR.png";
 
@@ -67,9 +66,9 @@ Glide
     .with(context)
     .load(internetUrl)
     .into(targetImageView);
-    
-就这样！如果图片的 URL 存在并且你的 ImageView 是可见的，你会在几秒后看到图片。万一图片不存在，Glide 会返回一个错误的回调（我们会在后面讨论这个）。你可能已经相信这三行代码对你而言是有用的，但是这只是冰山一角啦。
 ```
+就这样！如果图片的 URL 存在并且你的 ImageView 是可见的，你会在几秒后看到图片。万一图片不存在，Glide 会返回一个错误的回调（我们会在后面讨论这个）。你可能已经相信这三行代码对你而言是有用的，但是这只是冰山一角啦。
+
 
 
 
