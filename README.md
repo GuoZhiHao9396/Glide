@@ -201,10 +201,13 @@ public class ImageListAdapter extends ArrayAdapter {
 ![Test](https://futurestud.io/blog/content/images/2015/09/glide-listview--1-.png)
 
 ### Glide 的一个优势：缓存
+
 当你上下滚动很多次，你会看到图片显示的之前的快的多。在比较新的手机上，这甚至都不需要时间去等。你可以会猜测，这些图片可能是来自缓存，而不再是从网络中请求。Glide 的缓存实现是基于 Picasso，这对你来说会更加全面的而且做很多事情会更加容易。缓存实现的大小是依赖于设备的磁盘大小。
 
 当加载图片时，Glide 使用3个来源：内存，磁盘和网络（从最快到最慢排序）。再说一次，这里你不需要做任何事情。Glide 帮你隐藏了所有复杂的情况，同时为你创建了一个智能的缓存大小。我们将在以后的博客中去了解这块缓存知识。
+
 ### 画廊实现示例：GridView
+
 对于 GridView 来说这和 ListView 的实现并没有什么不同，你实际上可以用相同的 adapter，只需要在 activity 的布局文件改成 GridView:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -220,8 +223,11 @@ public class ImageListAdapter extends ArrayAdapter {
 ![Test](https://futurestud.io/blog/content/images/2015/09/glide-grid--1-.png)
 
 ### 其他应用：ImageView 作为元素
+
 目前为止，我们仅仅看了整个 adapter 的 item 是一个 ImageView。该方法仍然应用于一个或者多个 ImageView 作为 adapter item 的一部分的情况。你的 getView() 代码会有一点不同，但是 Glide 项的加载方式是完全相同的。
+
 ## 占位符 和 渐现动画
+
 空 ImageView 在任何 UI 上都是不好看的。如果你用 Glide，你很可能是通过网络连接加载图像。根据你用户的环境，这可能需要花费很多的时间。一个预期的行为是一个APP 去显示一个占位符直到这张图片加载处理完成。
 
 Glide 的流式接口让这个变得非常容易的去做到！只需要调用 .placeHolder() 用一个 drawable(resource) 引用，Glide 将会显示它作为一个占位符，直到你的实际图片准备好。
@@ -233,7 +239,9 @@ Glide
     .into(imageViewPlaceholder);
 ```
 做为一个显而易见的原因，你不能设置一个网络 url 作为占位符，因为这也会被去请求加载的。App 资源和 drawable 能保证可用和可访问的。然而，作为 load() 方法的参数，Glide 接受所有值。这可能不是可加载的（没有网络连接，服务器宕机…），删除了或者不能访问。在下一节中，我们将讨论一个错误的占位符。
+
 ### 错误占位符：.error()
+
 假设我们的 App 尝试从一个网站去加载一张图片。Glide 给我们一个选项去获取一个错误的回调并采取合适的行动。我们会在后面来讨论，对现在来说，可能太复杂了。在大多数情况下使用占位符，来指明图片不能被加载已经足够了。
 
 调用 Glide 的流式接口和之前显示预加载占位符的例子是相同的，不同的是调用了名为 error() 的函数。
@@ -246,7 +254,9 @@ Glide
     .into(imageViewError);
 ```
 就这样。如果你定义的 load() 值的图片不能被加载出来，Glide 会显示 R.mipmap.future_studio_launcher 作为替换。再说一次，error()接受的参数只能是已经初始化的 drawable 对象或者指明它的资源(R.drawable.drawable-keyword)。
+
 ### 使用crossFade()
+
 无论你是在加载图片之前是否显示一个占位符，改变 ImageView 的图片在你的 UI 中有非常显著的变化。一个简单的选项是让它改变是更加平滑和养眼的，就是使用一个淡入淡出动画。Glide 使用标准的淡入淡出动画，这是(对于当前版本3.7.0)默认激活的。如果你想要如强制 Glide 显示一个淡入淡出动画，你必须调用另外一个建造者：
 ```java
 Glide
@@ -258,7 +268,9 @@ Glide
     .into(imageViewFade);
 ```
 crossFade() 方法还有另外重载方法 .crossFade(int duration)。如果你想要去减慢（或加快）动画，随时可以传一个毫秒的时间给这个方法。动画默认的持续时间是 300毫秒。
+
 ### 使用 dontAnimate()
+
 如果你想直接显示图片而没有任何淡入淡出效果，在 Glide 的建造者中调用 .dontAnimate() 。
 ```java
 Glide
@@ -272,3 +284,47 @@ Glide
 这是直接显示你的图片，而不是淡入显示到 ImageView。请确保你有更好的理由来做这件事情。
 
 需要知道的是所有这些参数都是独立的，而不需要彼此依赖的。比如，你可以设定 .error() 而不调用 .placeholder()。你可能设置 crossFade() 动画而没有占位符。任何参数的组合都是可能的。
+
+## 图片重设大小 和 缩放
+
+### 用 resize(x,y) 调整图片大小### 
+
+通常情况下，如果你的服务器或者 API 提供的图像是你需要的精确尺寸，这时是完美的情况下，在内存小号和图像质量之间的权衡。
+
+在和 Picasso 比较后，Glide 有更加高效的内存管理。Glide 自动限制了图片的尺寸在缓存和内存中，并给到 ImageView 需要的尺寸。Picasso 也有这样的能力，但需要调用 fit() 方法。对于 Glide，如果图片不会自动适配到 ImageView，调用 override(horizontalSize, verticalSize) 。这将在图片显示到 ImageView之前重新改变图片大小。
+```java
+Glide
+    .with(context)
+    .load(UsageExampleListViewAdapter.eatFoodyImages[0])
+    .override(600, 200) // resizes the image to these dimensions (in pixel). does not respect aspect ratio
+    .into(imageViewResize);
+```
+当你还没有目标 view 去知道尺寸的时候，这个选项也可能是有用的。比如，如果 App 想要在闪屏界面预热缓存，它还不能测量 ImageView 的尺寸。然而，如果你知道这个图片多少大，用 override 去提供明确的尺寸。
+
+### 缩放图像
+
+现在，对于任何图像操作，调整大小真的能让长宽比失真并且丑化图像显示。在你大多数的使用场景中，你想要避免发生这种情况。Glide 提供了一般变化去处理图像显示。提供了两个标准选项：centerCrop 和 fitCenter。
+
+### CenterCrop
+
+CenterCrop()是一个裁剪技术，即缩放图像让它填充到 ImageView 界限内并且裁剪额外的部分。ImageView 可能会完全填充，但图像可能不会完整显示。
+```java
+Glide
+    .with(context)
+    .load(UsageExampleListViewAdapter.eatFoodyImages[0])
+    .override(600, 200) // resizes the image to these dimensions (in pixel)
+    .centerCrop() // this cropping technique scales the image so that it fills the requested bounds and then crops the extra.
+    .into(imageViewResizeCenterCrop);
+```
+
+### FitCenter
+
+fitCenter() 是裁剪技术，即缩放图像让图像都测量出来等于或小于 ImageView 的边界范围。该图像将会完全显示，但可能不会填满整个 ImageView。
+```java
+Glide
+    .with(context)
+    .load(UsageExampleListViewAdapter.eatFoodyImages[0])
+    .override(600, 200)
+    .fitCenter() 
+    .into(imageViewResizeFitCenter);
+```
