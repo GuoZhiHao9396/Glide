@@ -13,12 +13,12 @@
 * [加载图片到通知栏和应用小部件中](#加载图片到通知栏和应用小部件中)
 * [异常：调试和错误处理](#异常：调试和错误处理)
 * [自定义转换](#自定义转换)
-* [用 animate() 自定义动画](#用 animate() 自定义动画)
+* [用animate()自定义动画](#用animate()自定义动画)
 * [集成网络栈](#集成网络栈)
-* [用 Module 自定义 Glide](#用 Module 自定义 Glide)
+* [用 Module 自定义 Glide](#用Module自定义Glide)
 * [Module 实例：接受自签名证书的 HTTPS](#Module 实例：接受自签名证书的 HTTPS)
-* [Module 实例：自定义缓存](#Module 实例：自定义缓存)
-* [Module 实例：用自定义尺寸优化加载的图片](#Module 实例：用自定义尺寸优化加载的图片)
+* [Module 实例：自定义缓存](#自定义内存缓存)
+* [Module 实例：用自定义尺寸优化加载的图片](#为何要在指定的尺寸下请求图片)
 * [动态使用 Model Loader](#动态使用 Model Loader)
 * [如何旋转图像](#如何旋转图像)
 * [系列综述](#系列综述)
@@ -1228,3 +1228,630 @@ dependencies {
 ### 其他网络库
 
 如果你是别的网络库的粉丝，你是不幸的。Glide 除了 Volley 和 OkHttp 外不会自动配置其他的库。然而你随时可以整合你喜欢的网络库，在 GitHub 上去开一个 pull request。为Volley 和 OkHttp 可能给你一个方向。
+
+## 用Module自定义Glide
+
+### Glide Modules
+
+Glide module 是一个抽象方法，全局改变 Glide 行为的一个方式。如果你需要访问 GlideBuilder，它要在你要做的地方创建 Glide 实例，这是要做的一种方法。为了定制 Glide，你需要去实现一个 GlideModule 接口的公共类。
+
+```java
+public class SimpleGlideModule implements GlideModule {  
+    @Override public void applyOptions(Context context, GlideBuilder builder) {
+        // todo
+    }
+
+    @Override public void registerComponents(Context context, Glide glide) {
+        // todo
+    }
+}
+```
+
+该接口提供了两种发发来调整 Glide 不同的组件。在这篇博客中，我们主要看第一个方法 applyOptions(Context context, GlideBuilder builder)。
+
+所以你知道要创建一个额外的类去定制 Glide。下一步是要全局的去声明这个类，让 Glide 知道它应该在哪里被加载和使用。Glide 会扫描 AndroidManifest.xml 为 Glide module 的 meta 声明。因此，你必须在 AndroidManifest.xml 的 < application > 标签内去声明这个刚刚创建的 Glide module。
+
+```xml
+<manifest
+
+    ...
+
+    <application>
+
+        <meta-data
+            android:name="io.futurestud.tutorials.glide.glidemodule.SimpleGlideModule"
+            android:value="GlideModule" />
+
+        ...
+
+    </application>
+</manifest> 
+```
+
+请确保你将 android:name 属性改成你的包名+类名的形式，这样的引用才是正确的。就这样，你不需要去添加其他任何代码。如果你想删掉 Glide Module，只需要把它从 AndroidManifest.xml 中移除就可以了。Java 类可以保存，说不定以后会用呢。如果它没有在 AndroidManifest.xml 中被引用，那它不会被加载或被使用。
+
+你去定制 module 的话 Glide 会有这样一个优点：你可以同时声明多个 Glide module。Glide 将会（没有特定顺序）得到所有的声明 module。因为你当前不能定义顺序，请确保定制不会引起冲突！
+
+### GlideBuilder
+
+好了，你知道如何用 Glide module 定制 Glide 了。现在来看看接口的第一个方法：applyOptions(Context context, GlideBuilder builder)。该方法给你了一个 GlideBuilder 对象作为变量。这个方法是一个 void 的返回类型，所以你可以在这个方法里去调 GlideBuilder 中可用的方法。
+
+  * setMemoryCache(MemoryCache memoryCache)
+  * setBitmapPool(BitmapPool bitmapPool)
+  * setDiskCache(DiskCache.Factory diskCacheFactory)
+  * setDiskCacheService(ExecutorService service)
+  * setResizeService(ExecutorService service)
+  * setDecodeFormat(DecodeFormat decodeFormat)
+  
+你可以看到，这个 GlideBuilder 对象给你访问了 Glide 重要的核心组件。在这个博客中使用的方法，你可以改变磁盘缓存，内存缓存等等！
+
+我们稍后会看到更多进阶的组件，但是现在我们先挑一个相对加单的改变：.setDecodeFormat(DecodeFormat decodeFormat)。
+
+### 使用实例：增加 Glide 的图片质量
+
+在 Android 中有两个主要的方法对图片进行解码：ARGB8888 和 RGB565。前者为每个像素使用了 4 个字节，后者仅为每个像素使用了 2 个字节。ARGB8888 的优势是图像质量更高以及能存储一个 alpha 通道。Picasso 使用 ARGB8888，Glide 默认使用低质量的 RGB565。对于 Glide 使用者来说：你使用 Glide module 方法去改变解码规则。
+
+你只需要实现一个 GlideModule，像我们上面给你显示的那样，然后使用正确的枚举值调用 builder.setDecodeFormat(DecodeFormat.PREFER_ARGB_8888)。
+
+```java
+public class SimpleGlideModule implements GlideModule {  
+    @Override public void applyOptions(Context context, GlideBuilder builder) {
+        builder.setDecodeFormat(DecodeFormat.PREFER_ARGB_8888);
+    }
+
+    @Override public void registerComponents(Context context, Glide glide) {
+        // nothing to do here
+    }
+}
+```
+
+如果你是正确的按照我们的步骤来的话，Glide 现在回用更高质量的图片解码。这种改变方式也遵循 Glide 的行为，适用于其他的模式。代码在 registerComponents() 会看起来有一点不同，我们很快会看到的。
+
+## Module实例：接受自签名证书的 HTTPS
+
+### 用 GlideModule 修改 Glide
+
+你已经知道 GlideModule 提供给你两个方法去改变行为。上周，我们看了第一个方法 applyOptions()。这周我们会用另外一个方法 registerComponents()，去设置不同的网络库。默认情况下，Glide 内部使用了标准的 HTTPURLConnection 去下载图片。Glide 也提供了两个集合库。这三个都一个非常杨格的安全设置，这很好。唯一的缺点可能是当你的图片从服务端获取时，是使用 HTTPS，且是自签名的(self-signed)。这时 Glide 不会下载或显示图片了，因为自签名的证书被认为是一个安全的问题。
+
+### 不安全的 OKHttpClient
+
+因此，你需要去实现自己的网络栈，它接受自签名证书。幸运的是，我们之前已经实现了一个“不安全” 的 OKHttpClient。我们主要复制粘贴这个类。因为它给了我们一个常规的 OkHttpClient，我们这样子来集成：
+
+```java
+public class UnsafeOkHttpClient {  
+    public static OkHttpClient getUnsafeOkHttpClient() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+                    }
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            OkHttpClient okHttpClient = new OkHttpClient();
+            okHttpClient.setSslSocketFactory(sslSocketFactory);
+            okHttpClient.setProtocols(Arrays.asList(Protocol.HTTP_1_1));
+            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+
+            return okHttpClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+创建 OkHttpClient 禁用掉所有的 SSL 证书检查。
+
+### 整合到 Glide
+
+我们的优势是，OkHttp 整合库为 Glide 做了几乎相同的事情，所以我们可以跟着他们走。首先，我们需要在 GlideModule 中声明我们的定制。正如你所期待的，我们要在 registerComponents() 方法中去做适配。我们可以调用 .register() 方法去改变 Glide 的基本部件。Glide 使用一个 GlideLoader 去链接数据模型到一个具体的数据类型。在我们的实例中，我们要去创建一个 ModeLoader，连接传入的 URL，通过 GlideUrl 类来代表一个 InputStream。Glide 要能创建一个我们的新的 ModeLoader，所以我们要在 .register() 方法中传递一个工厂。
+
+```java
+public class UnsafeOkHttpGlideModule implements GlideModule {  
+        @Override
+        public void applyOptions(Context context, GlideBuilder builder) {
+
+        }
+
+        @Override
+        public void registerComponents(Context context, Glide glide) {
+            glide.register(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
+        }
+    }
+```
+
+前两个参数是 model 类，和连接的资源类。最后一个参数是 ModelLoaderFactory。因此，我们不能直接设置一个 UnsafeOkHttpClient 实例，我们需要去创建一个 ModelLoaderFactory，它用 UnsafeOkHttpClient 来提供了一个 URL 和输入流之前的连接。
+
+再说一次，在 OkHttp 整合库 中给了我们一个很好的模板：
+
+```java
+public class OkHttpUrlLoader implements ModelLoader<GlideUrl, InputStream> {
+
+    /**
+     * The default factory for {@link OkHttpUrlLoader}s.
+     */
+    public static class Factory implements ModelLoaderFactory<GlideUrl, InputStream> {
+        private static volatile OkHttpClient internalClient;
+        private OkHttpClient client;
+
+        private static OkHttpClient getInternalClient() {
+            if (internalClient == null) {
+                synchronized (Factory.class) {
+                    if (internalClient == null) {
+                        internalClient = UnsafeOkHttpClient.getUnsafeOkHttpClient();
+                    }
+                }
+            }
+            return internalClient;
+        }
+
+        /**
+         * Constructor for a new Factory that runs requests using a static singleton client.
+         */
+        public Factory() {
+            this(getInternalClient());
+        }
+
+        /**
+         * Constructor for a new Factory that runs requests using given client.
+         */
+        public Factory(OkHttpClient client) {
+            this.client = client;
+        }
+
+        @Override
+        public ModelLoader<GlideUrl, InputStream> build(Context context, GenericLoaderFactory factories) {
+            return new OkHttpUrlLoader(client);
+        }
+
+        @Override
+        public void teardown() {
+            // Do nothing, this instance doesn't own the client.
+        }
+    }
+
+    private final OkHttpClient client;
+
+    public OkHttpUrlLoader(OkHttpClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public DataFetcher<InputStream> getResourceFetcher(GlideUrl model, int width, int height) {
+        return new OkHttpStreamFetcher(client, model);
+    }
+}
+```
+
+在这个类中，你可以看到 ModelLoaderFactory 的内部构造是怎样的。对我们来说，重要的代码是创建 internalClient 对象：internalClient = UnsafeOkHttpClient.getUnsafeOkHttpClient();。
+
+不幸的是，我们仍然需要用我们的不安全的 OKHttpClient 去连接 URL 激活输入流。因此，我们需要另外一个类去从一个 URL 中拉取返回的输入流：
+
+```java
+public class OkHttpStreamFetcher implements DataFetcher<InputStream> {  
+    private final OkHttpClient client;
+    private final GlideUrl url;
+    private InputStream stream;
+    private ResponseBody responseBody;
+
+    public OkHttpStreamFetcher(OkHttpClient client, GlideUrl url) {
+        this.client = client;
+        this.url = url;
+    }
+
+    @Override
+    public InputStream loadData(Priority priority) throws Exception {
+        Request.Builder requestBuilder = new Request.Builder()
+                .url(url.toStringUrl());
+
+        for (Map.Entry<String, String> headerEntry : url.getHeaders().entrySet()) {
+            String key = headerEntry.getKey();
+            requestBuilder.addHeader(key, headerEntry.getValue());
+        }
+
+        Request request = requestBuilder.build();
+
+        Response response = client.newCall(request).execute();
+        responseBody = response.body();
+        if (!response.isSuccessful()) {
+            throw new IOException("Request failed with code: " + response.code());
+        }
+
+        long contentLength = responseBody.contentLength();
+        stream = ContentLengthInputStream.obtain(responseBody.byteStream(), contentLength);
+        return stream;
+    }
+
+    @Override
+    public void cleanup() {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+                // Ignored
+            }
+        }
+        if (responseBody != null) {
+            try {
+                responseBody.close();
+            } catch (IOException e) {
+                // Ignored.
+            }
+        }
+    }
+
+    @Override
+    public String getId() {
+        return url.getCacheKey();
+    }
+
+    @Override
+    public void cancel() {
+        // TODO: call cancel on the client when this method is called on a background thread. See #257
+    }
+}
+```
+
+不需要知道在这个类中所有的细节。然而，你应该对于这个系统有一个大概的理解，Glide 能去替换内部的工厂组件。
+
+## 自定义内存缓存
+
+既然是定制 Glide，我们就需要创建一个新的 Glide module。就如你在以前博客中看到的那样，applyOptions 方法使我们获取了 GlideBuilder 对象。该 GlideBuilder 为我们提供了几个方法去定制 Glide 的缓存。首先，来看看内存缓存。
+
+内存缓存是在设备的 RAM 中去维护图片的。这里没有 IO 行为，所以这个操作是很快的。另一方面是 RAM(内存) 的大小是非常有限的。寻找一个大内存缓存的平衡点（大量图像空间）与一个小内存缓存（最大限度减少我们 App 的资源消耗）并不容易。Glide 内部使用了 MemorySizeCalculator 类去决定内存缓存大小以及 bitmap 的缓存池。bitmap 池维护了你 App 的堆中的图像分配。正确的 bitmpa 池是非常必要的，因为它避免很多的图像重复回收，这样可以确保垃圾回收器的管理更加合理。
+
+幸运的是，你已经得到了 Glide 的 MemorySizeCalculator 类以及默认的计算：
+
+```java
+MemorySizeCalculator calculator = new MemorySizeCalculator(context);  
+int defaultMemoryCacheSize = calculator.getMemoryCacheSize();  
+int defaultBitmapPoolSize = calculator.getBitmapPoolSize();  
+```
+
+上面这段代码相当有用，如果我们想要用默认值作为基准，然后调整它。比如，如果你认为你的 app 需要 20% 大的缓存作为 Glide 的默认值，用我们上面的变量去计算他们：
+
+```java
+int customMemoryCacheSize = (int) (1.2 * defaultMemoryCacheSize);  
+int customBitmapPoolSize = (int) (1.2 * defaultBitmapPoolSize);  
+```
+
+因为我们已经计算出了我们的内存缓存和 bitmap 池的大小，我们可以在我们的 Glide module 代码里去得到。在 applyOptions() 方法中，我们可以在 GlideBuilder 对象中调用相应的方法。
+
+```java
+public class CustomCachingGlideModule implements GlideModule {  
+    @Override public void applyOptions(Context context, GlideBuilder builder) {
+        MemorySizeCalculator calculator = new MemorySizeCalculator(context);
+        int defaultMemoryCacheSize = calculator.getMemoryCacheSize();
+        int defaultBitmapPoolSize = calculator.getBitmapPoolSize();
+
+        int customMemoryCacheSize = (int) (1.2 * defaultMemoryCacheSize);
+        int customBitmapPoolSize = (int) (1.2 * defaultBitmapPoolSize);
+
+        builder.setMemoryCache( new LruResourceCache( customMemoryCacheSize );
+        builder.setBitmapPool( new LruBitmapPool( customBitmapPoolSize );
+    }
+
+    @Override public void registerComponents(Context context, Glide glide) {
+        // nothing to do here
+    }
+}
+```
+
+正如你看到的，在 applyOptions() 方法的最后两行，我们不能直接设置大小。我们需要创建一个 LruResourceCache 和 LruBitmapPool 的实例。这两个都是 Glide 的默认实现。因此，如果你仅仅想要调整大小，就可以继续使用它们通过传两个不同的大小的值给构造函数。
+
+### 自定义磁盘缓存
+
+调整磁盘缓存和和刚才的很像，但是我们有一个更大的决定去做，磁盘缓存可以位于应用的私有目录（换句话说，除了它自己，没有别的应用可以访问）。否则，磁盘缓存也可以位于外部存储，公有目录（更多信息，请看 Storage Options）。不能一起设置这两个为之。Glide 为这两个选项都提供了它的实现：InternalCacheDiskCacheFactory 和 ExternalCacheDiskCacheFactory。就像内存缓存的构造函数一样，在它们的构造函数内都传一个磁盘缓存的工厂类：
+
+```java
+public class CustomCachingGlideModule implements GlideModule {  
+    @Override
+    public void applyOptions(Context context, GlideBuilder builder) {
+        // set size & external vs. internal
+        int cacheSize100MegaBytes = 104857600;
+
+        builder.setDiskCache(
+            new InternalCacheDiskCacheFactory(context, cacheSize100MegaBytes)
+        );
+
+        //builder.setDiskCache(
+        //new ExternalCacheDiskCacheFactory(context, cacheSize100MegaBytes));
+    }
+
+    @Override
+    public void registerComponents(Context context, Glide glide) {
+        // nothing to do here
+    }
+}
+```
+
+上面的代码将设置磁盘缓存到应用的内部目录，并且设置了最大的大小为 100M。下面注释的那行代码会设置磁盘缓存到外部存储（也设置了最大大小为 100M）。
+
+这两个选项都不让你选一个特点的目录。如果你要让磁盘缓存到指定的目录，你要使用 DiskLruCacheFactory：
+
+```java
+// or any other path
+String downloadDirectoryPath = Environment.getDownloadCacheDirectory().getPath(); 
+
+builder.setDiskCache(  
+        new DiskLruCacheFactory( downloadDirectoryPath, cacheSize100MegaBytes )
+);
+
+// In case you want to specify a cache sub folder (i.e. "glidecache"):
+//builder.setDiskCache(
+//    new DiskLruCacheFactory( downloadDirectoryPath, "glidecache", cacheSize100MegaBytes ) 
+//);
+```
+
+### 自定义缓存实现
+
+目前为止，我们已经向你展示了如何去移动和设置缓存为确定的大小。然而，所有的调用都引用了缓存的原始实现。如果你有你自己的缓存实现呢？
+
+嗯，你看到我们总是创建一个 Glide 的默认缓存的实现的新实例。你可以完成你自己的实现，创建和实例化它，并用上上面所有你看到的方法。你必须确保你的缓存代码实现了如下接口方法：
+
+  * Memory cache needs to implement: MemoryCache
+  * Bitmap pool needs to implement BitmapPool
+  * Disk cache needs to implement: DiskCache
+  
+## 为何要在指定的尺寸下请求图片
+
+在一个最近的项目中我们与一个多媒体服务端工作，它也是图片服务端，提供了非常高的图像质量（图像可能有 6000x4500 像素）。虽然我们可以直接用链接去拿源文件，但这对于设备的带宽，内存和电池来说，这么做是非常低效的。即使今天的设备有着非常高的分辨率显示屏，有这么高的一个分辨率没有任何好处。这就是为什么 Glide 总是测量 ImageView 的尺寸，并减少图像的内存分配大小。所以，这里仍然需要减少下载和计算处理的开销。因此，这个多媒体服务端给了一个新功能：它可以提供自定义图像的分辨率。这么想象一下吧：
+
+```java
+// previous way: we directly accessed the images
+https://futurestud.io/images/logo.png
+
+// new way, server could handle additional parameter and provide the image in a specific size
+// in this case, the server would serve the image in 400x300 pixel size
+https://futurestud.io/images/logo.png?w=400&h=300  
+```
+
+媒体服务端维护了之前的计算大小在磁盘上，如果没有请求传过去，缩放图像仍然在天上飞呢。现在初步实现了 Android 这边计算好了 ImageView 的大小，然后用 链接 URL（就像 ../logo.png?w=400&h=300）做 Glide 请求。向我们之前给你展现的那样。这种方式奏效了，但是有点复杂，特别是如果你认为 Glide 在这里提供了帮助。
+
+### 另一种自定义 GlideModule
+
+当然，我们必须声明一个新的 Glide module。在这种情况下，我们必须用 glide.register() 方法注册新的 model 到 Glide。
+
+```java
+public class CustomImageSizeGlideModule implements GlideModule {  
+    @Override public void applyOptions(Context context, GlideBuilder builder) {
+        // nothing to do here
+    }
+
+    @Override public void registerComponents(Context context, Glide glide) {
+        glide.register(CustomImageSizeModel.class, InputStream.class, new CustomImageSizeModelFactory());
+    }
+}
+```
+
+该 .register() 调用了 Glide 的配置去给所有的请求，实现 CustomImageSizeModel 接口（替换常规的 GlideUrl 接口）。所以在这里你可以创建并传递一个 CustomImageSizeModel 的实例去实现给 Glide。 为了处理这个新的自定义 model。我们要去写一个 CustomImageSizeModelFactory 类，创建了我们的 model 处理的实例。
+
+综上所述，在你添加了上述的 Glide module 后，你应该有两个未知的类。首先是 CustomImageSizeModel。
+
+```java
+public interface CustomImageSizeModel {  
+    String requestCustomSizeUrl(int width, int height);
+}
+```
+
+CustomImageSizeModel 只是一个接口，它将宽度和高度作为其参数，这是必须的，这样我们才能从媒体服务端请求精确的像素图像。第二个未知的类是 CustomImageSizeModelFactory：
+
+```java
+private class CustomImageSizeModelFactory implements ModelLoaderFactory<CustomImageSizeModel, InputStream> {  
+    @Override
+    public ModelLoader<CustomImageSizeModel, InputStream> build(Context context, GenericLoaderFactory factories) {
+        return new CustomImageSizeUrlLoader( context );
+    }
+
+    @Override
+    public void teardown() {
+
+    }
+}
+```
+
+这个类仅仅实现了 Glide 的 ModelLoaderFactory 接口。它为我们的 CustomImageSizeUrlLoader 类创建了一个新的实例，一旦 Glide 请求被创建，它将负责加载图像。
+
+```java
+public class CustomImageSizeUrlLoader extends BaseGlideUrlLoader<CustomImageSizeModel> {  
+    public CustomImageSizeUrlLoader(Context context) {
+        super( context );
+    }
+
+    @Override
+    protected String getUrl(CustomImageSizeModel model, int width, int height) {
+        return model.requestCustomSizeUrl( width, height );
+    }
+}
+```
+
+这样，我们为自定义大小的请求的新的 Glide module 已经做完了。我们已经在 Glide module 这边实现了所有的东西的，但是我们还没有实际创建 CustomImageSizeModel 接口的实现。为了用 CustomImageSizeModel 传递请求给 Glide。我们需要一个雷，它建立了自定义图片大小的 URL：
+
+```java
+public class CustomImageSizeModelFutureStudio implements CustomImageSizeModel {  
+    String baseImageUrl;
+
+    public CustomImageSizeModelFutureStudio(String baseImageUrl) {
+        this.baseImageUrl = baseImageUrl;
+    }
+
+    @Override
+    public String requestCustomSizeUrl(int width, int height) {
+        // previous way: we directly accessed the images
+        // https://futurestud.io/images/logo.png
+
+        // new way, server could handle additional parameter and provide the image in a specific size
+        // in this case, the server would serve the image in 400x300 pixel size
+        // https://futurestud.io/images/logo.png?w=400&h=300
+        return baseImageUrl + "?w=" + width + "&h=" + height;
+    }
+}
+```
+
+在上面的 CustomImageSizeModelFutureStudio 类中，我们已经实现了建立图片 URL 的逻辑：附加了高度和宽度的参数。最后，我们可以创建这个类的实例并做一个 Glide 请求：
+
+```java
+String baseImageUrl = "https://futurestud.io/images/example.png";  
+CustomImageSizeModel customImageRequest = new CustomImageSizeModelFutureStudio( baseImageUrl );
+
+Glide  
+        .with( context )
+        .load( customImageRequest )
+        .into( imageView2 );
+```
+
+正如你看到的，我们不需要传一个精确的尺寸。Glide 会测量 ImageView 然后传给我们的请求。现在服务端会返回这个图片的完美的优化后的尺寸了！
+
+当然你可以添加其他的 CustomImageSizeModel model 实现。如果你有多个服务端，它们使用了不同的逻辑去简历 URL。只需要创建一个新的 CustomImageSizeModel 实现然后传递它到你的 Glide 请求中。你可以使用很多的 model 去按照你需要的来实现！
+
+## 动态使用ModelLoader
+
+### 自定义图像大小
+
+通常 Glide 的请求是和 GlideUrl 类来使用的。上周我们已经向你展示了如何创建一个新的接口，来考虑增加宽度和高度。
+
+```java
+public interface CustomImageSizeModel {  
+    String requestCustomSizeUrl(int width, int height);
+}
+```
+
+我们创建了一个实现，它及案例额传递了图像的 URL 加上尺寸提交给了工作服务器。
+
+```java
+public static class CustomImageSizeModelFutureStudio implements CustomImageSizeModel {
+
+    String baseImageUrl;
+
+    public CustomImageSizeModelFutureStudio(String baseImageUrl) {
+        this.baseImageUrl = baseImageUrl;
+    }
+
+    @Override
+    public String requestCustomSizeUrl(int width, int height) {
+        return baseImageUrl + "?w=" + width + "&h=" + height;
+    }
+}
+```
+
+最后，这并不是最重要的，我们必须创建一个 CustomImageSizeUrlLoader，它传了宽度和高度给了我们的 model 实现：
+
+```java
+public static class CustomImageSizeUrlLoader extends BaseGlideUrlLoader<CustomImageSizeModel> {  
+    public CustomImageSizeUrlLoader(Context context) {
+        super( context );
+    }
+
+    @Override
+    protected String getUrl(CustomImageSizeModel model, int width, int height) {
+        return model.requestCustomSizeUrl( width, height );
+    }
+}
+```
+
+### Model Loader 和 .using() 的动态使用
+
+目前我们已经声明了 Glide module。Glide 会把它用在每一个请求。如果你不想这样，从 AndroidManifest.xml 中删除你的 Glide module。我们可以这么做是因为 Glide 提供了 .using() 方法去为单个的请求指定一个 model。
+
+```java
+String baseImageUrl = "https://futurestud.io/images/example.png";  
+CustomImageSizeModel customImageRequest = new CustomImageSizeModelFutureStudio( baseImageUrl );
+
+Glide  
+        .with( context )
+        .using( new CustomImageSizeUrlLoader( context ) )
+        .load( customImageRequest )
+        .into( imageView1 );
+```
+
+正如你看到的，我们正在创建一个 CustomImageSizeModelFutureStudio 对象来为我们的图像按照指定的大小加载。因为没有在 Glide module 中声明 CustomImageSizeModel 接口，我们必须指明这行代码 .using(new CustomImageSizeUrlLoader(context))。Glide 现在会只为这个请求用这个 model。对于其他的请求，即使它们有 CustomImageSizeModel 接口，也不会受影响。
+
+## 如何旋转图像
+
+事实上，android.graphics.Matrix 类提供了我们所需要的准确办法（甚至更多办法）。这个代码片段就是用来旋转图像的：
+
+```java
+Bitmap toTransform = ... // your bitmap source
+
+Matrix matrix = new Matrix();  
+matrix.postRotate(rotateRotationAngle);
+
+Bitmap.createBitmap(toTransform, 0, 0, toTransform.getWidth(), toTransform.getHeight(), matrix, true);  
+```
+
+为了使它对我们有用，尤其是用在 Glide 中，我们会包裹它作为一个 BitmapTransformation：
+
+```java
+public class RotateTransformation extends BitmapTransformation {
+
+    private float rotateRotationAngle = 0f;
+
+    public RotateTransformation(Context context, float rotateRotationAngle) {
+        super( context );
+
+        this.rotateRotationAngle = rotateRotationAngle;
+    }
+
+    @Override
+    protected Bitmap transform(BitmapPool pool, Bitmap toTransform, int outWidth, int outHeight) {
+        Matrix matrix = new Matrix();
+
+        matrix.postRotate(rotateRotationAngle);
+
+        return Bitmap.createBitmap(toTransform, 0, 0, toTransform.getWidth(), toTransform.getHeight(), matrix, true);
+    }
+
+    @Override
+    public String getId() {
+        return "rotate" + rotateRotationAngle;
+    }
+}
+```
+
+如果你不知道上面这个类发生了，去看看我们介绍的 Custom Transformations，它将告诉你所有你要知道的。
+
+最后，让我们看看新的转换的实例：
+
+```java
+private void loadImageOriginal() {  
+    Glide
+        .with( context )
+        .load( eatFoodyImages[0] )
+        .into( imageView1 );
+}
+
+private void loadImageRotated() {  
+    Glide
+        .with( context )
+        .load( eatFoodyImages[0] )
+        .transform( new RotateTransformation( context, 90f ))
+        .into( imageView3 );
+}
+```
+![Test](https://futurestud.io/blog/content/images/2016/02/glide-rotate.png)
+
+当然，你可以改变第二个参数来设置你需要的旋转的角度。你甚至可以动态设置它！
