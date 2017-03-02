@@ -5,11 +5,11 @@
 * [ListAdapter(ListView, GridView)使用方法](#ListAdapter(ListView, GridView)使用方法)
 * [占位符和渐现动画](#占位符和渐现动画)
 * [图片重设大小和缩放](#图片重设大小和缩放)
-* [显示Gif和Video](#显示Gif和Video)
+* [显示Gif和Video](#显示动态图和视频)
 * [缓存基础](#缓存基础)
 * [请求优先级](#请求优先级)
 * [缩略图](#缩略图)
-* [回调：SimpleTarget 和 ViewTarget 用于自定义视图类](#回调：SimpleTarget 和 ViewTarget 用于自定义视图类)
+* [回调：SimpleTarget 和 ViewTarget 用于自定义视图类](#回调自定义视图类)
 * [加载图片到通知栏和应用小部件中](#加载图片到通知栏和应用小部件中)
 * [异常：调试和错误处理](#异常：调试和错误处理)
 * [自定义转换](#自定义转换)
@@ -328,7 +328,7 @@ Glide
     .fitCenter() 
     .into(imageViewResizeFitCenter);
 ```
-## 显示Gif和Video
+## 显示动态图和视频
 
 ### 显示 Gif
 
@@ -561,7 +561,7 @@ private void loadImageThumbnailRequest() {
 ```
 所不同的是，第一个缩略图请求是完全独立于第二个原始请求的。该缩略图可以是不同的资源或图片 URL，你可以为其应用不同的转换，等等。
 
-## 回调：SimpleTarget和ViewTarget用于自定义视图类
+## 回调自定义视图类
 
 ### Glide 中的回调：Targets
 
@@ -697,9 +697,9 @@ private void loadImageViewTarget() {
 
 这应该涵盖了所有你需要的自定义 view。你也可以在回调中添加额外的工作。如，我们可以分析传入的 Bitmap 的主要的颜色并设置十六进制值给TextView。
 
-## 加载图片到 Notifications
+## 加载图片到通知栏和应用小部件中
 
-[Test](https://futurestud.io/blog/content/images/2015/10/notification-icon-cropped.png)
+![Test](https://futurestud.io/blog/content/images/2015/10/notification-icon-cropped.png)
 
 通知栏图标对用户来说是重要的上下文。用 NotificationCompat.Builder 来直接设置大的通知图片，但是图像必须以 Bitmap 的形式。如果图片在手机上已经是可用的，这并没什么问题。然而，如果图片斌不在设备上并且需要从网上加载的话，使用标准的方式来处理就变得不可能了。
 
@@ -709,7 +709,7 @@ private void loadImageViewTarget() {
 
 所以，让我们来看代码。现在你知道 Glide target 是如何工作的了，因此我们不会再去用它了。为了显示一张大图片在通知栏，你可以使用 RemoteViews 并显示一个自定义的通知栏。
 
-[Test](https://futurestud.io/blog/content/images/2015/10/custom-notification.png)
+![Test](https://futurestud.io/blog/content/images/2015/10/custom-notification.png)
 
 我们自定义的通知栏比较简单：
 
