@@ -2,7 +2,7 @@
 
 * [开始](#开始) 
 * [加载进阶](#加载进阶)
-* [ListAdapter(ListView, GridView)使用方法](#ListAdapter(ListView, GridView)使用方法)
+* [ListAdapter(ListView, GridView)使用方法](#使用方法)
 * [占位符和渐现动画](#占位符和渐现动画)
 * [图片重设大小和缩放](#图片重设大小和缩放)
 * [显示Gif和Video](#显示动态图和视频)
@@ -116,7 +116,7 @@ private static Uri resourceIdToUri(Context context, int resourceId) {
 ```
 然而， Uri 不必从资源中去生成，它可以是任何 Uri。
 
-## ListAdapter(ListView, GridView)使用方法
+## 使用方法
 
 ### 画廊实现示例：ListView
 
