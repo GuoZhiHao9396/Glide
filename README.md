@@ -16,7 +16,7 @@
 * [用animate()自定义动画](#用animate()自定义动画)
 * [集成网络栈](#集成网络栈)
 * [用 Module 自定义 Glide](#用Module自定义Glide)
-* [Module 实例：接受自签名证书的 HTTPS](#Module 实例：接受自签名证书的 HTTPS)
+* [Module 实例：接受自签名证书的 HTTPS](#接受自签名证书的HTTPS)
 * [Module 实例：自定义缓存](#自定义内存缓存)
 * [Module 实例：用自定义尺寸优化加载的图片](#为何要在指定的尺寸下请求图片)
 * [动态使用 Model Loader](#动态使用 Model Loader)
@@ -1307,7 +1307,7 @@ public class SimpleGlideModule implements GlideModule {  
 
 如果你是正确的按照我们的步骤来的话，Glide 现在回用更高质量的图片解码。这种改变方式也遵循 Glide 的行为，适用于其他的模式。代码在 registerComponents() 会看起来有一点不同，我们很快会看到的。
 
-## Module实例：接受自签名证书的 HTTPS
+## 接受自签名证书的HTTPS
 
 ### 用 GlideModule 修改 Glide
 
